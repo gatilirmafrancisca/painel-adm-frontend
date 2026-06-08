@@ -1,7 +1,17 @@
-import { type RouteConfig, index } from "@react-router/dev/routes";
+import { type RouteConfig, index, route } from "@react-router/dev/routes";
+import { createBrowserRouter, Navigate } from 'react-router';
+import { Layout } from './components/Layout';
+import Login from "./routes/login";
+import Placeholder  from "./routes/placeholder";
 
-export default [
-    
-    index("routes/login.tsx")
+export const router = createBrowserRouter([
 
-] satisfies RouteConfig;
+    {
+    path: '/',
+    Component: Login, // Tela 1
+    },
+    {
+    path: '/',
+    Component: Layout,
+    },
+])
