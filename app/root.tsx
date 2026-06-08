@@ -28,7 +28,6 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function meta({}: Route.MetaArgs) {
-
   return [
     { title: "Painel Administrador GIF" },
     { name: "description", content: "Bem-vindo ao Painel Administrador do GIF!" },
@@ -37,7 +36,7 @@ export function meta({}: Route.MetaArgs) {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -56,11 +55,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
-
       <Outlet />
       <ToastContainer />
     </AuthProvider>
-    );
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

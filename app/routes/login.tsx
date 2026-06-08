@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { errorNotification, successNotification } from "~/components/ToasterComponents/ToasterNotifications";
 import avatarImg from "~/assets/avatar.png";
@@ -23,6 +23,10 @@ const Login : React.FC = () => {
     const { register, handleSubmit, formState: {errors} } = useForm<Props>();
     const BASEURL = import.meta.env.VITE_BASE_URL ?? (typeof window !== "undefined" ? window.location.origin : "http://localhost"); 
     const [loading, setLoading] = useState<boolean>(false);
+
+    if (auth.isAuthenticated) {
+        return <Navigate to="/dashboard" replace />;
+    }
 
     const onSubmit = async (data: Props) => {
 
@@ -47,7 +51,7 @@ const Login : React.FC = () => {
             if(response.ok && body?.user?.token) {
 
                 console.log("Login successful");
-                auth.login(body.user.token);
+                auth.login(body.user.token, { name: body.user.name, email: body.user.email });
                 successNotification(message);
                 navigate("/dashboard", { replace: true });
                 
