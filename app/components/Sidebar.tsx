@@ -84,8 +84,7 @@ const Sidebar : React.FC<SidebarProps> = ({ onClose }) => {
           </div>
 
           <div className="flex flex-col items-start">
-            <span className="text-sm font-medium">{auth.user?.name}</span>
-            <span className="text-xs text-gray-300">Perfil</span>
+            <span className="text-sm font-medium">{auth.user?.name ?? "Minha conta"}</span>            <span className="text-xs text-gray-300">Perfil</span>
           </div>
         </button>
 
