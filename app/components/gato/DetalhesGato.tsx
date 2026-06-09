@@ -1,6 +1,7 @@
 import React from 'react';
 import { type Gato } from '~/types/gato.type';
 import { Edit2, Trash2 } from 'lucide-react';
+import { ImageWithFallback } from '../ImageWithFallback';
 
 
 interface DetalhesGatoProps {
@@ -28,7 +29,7 @@ const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onClose }) => {
             <div className="space-y-2">
               <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Imagem</p>
               <div className="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-sm">
-                <img
+                <ImageWithFallback
                   src={gato.imagemUrl}
                   alt={gato.nome}
                   className="w-full h-auto max-h-[320px] lg:max-h-[420px] object-cover"

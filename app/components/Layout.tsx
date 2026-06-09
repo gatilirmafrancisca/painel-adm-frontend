@@ -2,12 +2,26 @@ import { useState } from "react";
 import { Outlet } from "react-router";
 import { Menu, X } from "lucide-react";
 import Sidebar from "./Sidebar";
+import patternBg from "../assets/grafismo/1.png";
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] font-sans text-[#1e1b1c]">
+    <div className="min-h-screen bg-[#f7f7f7] font-sans text-[#1e1b1c] relative overflow-hidden">
+
+       {/* Pattern Background */}
+            <div 
+                className="fixed inset-0 pointer-events-none z-0"
+                style={{
+                backgroundImage: `url(${patternBg})`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '  250px', // Creates a good distance between the graphics
+                opacity: 0.07,
+                mixBlendMode: 'multiply'
+            }}
+            />
+
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#1a5331] z-30 flex items-center justify-between px-4 text-white">
         <div className="font-bold text-lg">Gatil ONG</div>
 
