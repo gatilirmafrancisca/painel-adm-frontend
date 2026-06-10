@@ -8,6 +8,8 @@ import LoginForm from "~/components/login/LoginForm";
 import LoginButton from "~/components/MainButton";
 import Loader from "~/components/Loader";
 import "~/styles/loader.css";
+import { ImageWithFallback } from "~/components/ImageWithFallback";
+import patternBg from "../assets/grafismo/1.png";
 
 
 interface Props {
@@ -79,11 +81,25 @@ const Login : React.FC = () => {
 
 
     return (
-        <main className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-4 font-sans text-[#1e1b1c]">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+        <main className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-4 font-sans text-[#1e1b1c] relative overflow-hidden">
+
+
+            {/* Pattern Background */}
+            <div 
+                className="fixed inset-0 pointer-events-none z-0"
+                style={{
+                backgroundImage: `url(${patternBg})`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '  250px', // Creates a good distance between the graphics
+                opacity: 0.07,
+                mixBlendMode: 'multiply'
+            }}
+            />
+
+      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md z-10">
         <div className="flex flex-col items-center mb-8">
           <div className="w-20 h-20 mb-4">
-            <img 
+            <ImageWithFallback 
               src={avatarImg} 
               alt="Avatar Principal" 
               className="w-full h-full object-contain rounded-full"

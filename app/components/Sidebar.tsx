@@ -5,6 +5,7 @@ import avatarImg from "../assets/avatar.png";
 import { sidebarGroups } from "./sidebarItems";
 import { useAuth } from "../context/AuthContext";
 import Loader from "~/components/Loader";
+import { ImageWithFallback } from "./ImageWithFallback";
 
 type SidebarProps = {
   onClose?: () => void;
@@ -80,12 +81,11 @@ const Sidebar : React.FC<SidebarProps> = ({ onClose }) => {
           className="w-full bg-[#1a5331] brightness-90 hover:brightness-110 transition-all rounded-lg p-4 flex items-center gap-3"
         >
           <div className="w-10 h-10 rounded-full bg-[#368c5e] flex items-center justify-center overflow-hidden">
-            <img src={avatarImg} alt="Avatar Perfil" className="w-full h-full object-cover" />
+            <ImageWithFallback src={avatarImg} alt="Avatar Perfil" className="w-full h-full object-cover" />
           </div>
 
           <div className="flex flex-col items-start">
-            <span className="text-sm font-medium">{auth.user?.name}</span>
-            <span className="text-xs text-gray-300">Perfil</span>
+            <span className="text-sm font-medium">{auth.user?.name ?? "Minha conta"}</span>            <span className="text-xs text-gray-300">Perfil</span>
           </div>
         </button>
 
