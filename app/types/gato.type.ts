@@ -1,7 +1,7 @@
-const SEXOTYPES = ['Macho', 'Fêmea'] as const;
+export const SEXOTYPES = ['Macho', 'Fêmea'] as const;
 type SexoType = typeof SEXOTYPES[number];
 
-const CORTYPES = [
+export const CORTYPES = [
     'Frajola',
     'Tigrado',
     'Laranja',
@@ -19,12 +19,12 @@ type CorType = typeof CORTYPES[number];
 
 
 
-const FIVFELVTYPES = ['Negativo', 'FIV+', 'FeLV+', 'FIV+ FeLV+'] as const;
+export const FIVFELVTYPES = ['Negativo', 'FIV+', 'FeLV+', 'FIV+ FeLV+'] as const;
 type FivFeLVType = typeof FIVFELVTYPES[number];
 
 
 
-const PERSONALIDADETYPES = [
+export const PERSONALIDADETYPES = [
     'Afetuoso', 'Sociável', 'Tímido', 'Independente', 'Gato de Colo', 
   'Brincalhão', 'Ativo', 'Calmo', 'Explorador', 
   'Amigo de Gatos', 'Amigo de Cães', 'Paciente com Crianças', 'Gato Único',
@@ -34,7 +34,7 @@ type PersonalidadeType = typeof PERSONALIDADETYPES[number];
 
 
 
-const STATUSTYPES = ['Disponível', 'Em Tratamento', 'Reservado', 'Adotado'] as const;
+export const STATUSTYPES = ['Disponível', 'Em Tratamento', 'Reservado', 'Adotado'] as const;
 type StatusType = typeof STATUSTYPES[number];
 
 type Gato = {
@@ -51,7 +51,11 @@ type Gato = {
     necessidadesEspeciais: boolean,
     descricaoBio: string,
     status: StatusType,
-    imagemUrl: string
+    imagemUrl: string[]
 }
 
-export type { SexoType, CorType, FivFeLVType, PersonalidadeType, StatusType, Gato };
+interface GatoFormData extends Omit<Gato, 'id' | 'imagemUrl'> {
+    imagens: FileList; 
+}
+
+export type { SexoType, CorType, FivFeLVType, PersonalidadeType, StatusType, Gato, GatoFormData };

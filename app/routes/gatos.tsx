@@ -71,6 +71,70 @@ const Gatos : React.FC = () => {
         return <Navigate to="/" replace />;
     }
 
+    const handleCreated = (gato: Gato) => {
+        const isTemp = typeof gato.id === "string" && gato.id.startsWith("temp-");
+
+        // Se for um temp id, insere otimisticamente (se ainda não existir)
+        if (isTemp) {
+            originalGatosRef.current = originalGatosRef.current.some((b) => b.id === gato.id)
+                ? originalGatosRef.current.map((b) => (b.id === gato.id ? gato : b))
+                : [gato, ...originalGatosRef.current];
+
+            setGatos((prev) => {
+                if (prev.some((b) => b.id === gato.id)) return prev;
+                return [gato, ...prev];
+            });
+            return;
+        }
+        setGatos((prev) => {
+            // 1) substitui por id exato
+            if (prev.some((b) => b.id === gato.id)) {
+                return prev.map((b) => (b.id === gato.id ? gato : b));
+            }
+
+            const idx = prev.findIndex(
+                (b) =>
+                    (b.nome === gato.nome && b.idade === gato.idade) ||
+                    (typeof b.id === "string" && b.id.startsWith("temp-"))
+            );
+            if (idx !== -1) {
+                const copy = [...prev];
+                copy[idx] = gato;
+                return copy;
+            }
+
+            // 3) se não achar nada, adiciona no topo
+            return [gato, ...prev];
+        });
+
+        if (originalGatosRef.current.some((b) => b.id === gato.id)) {
+            originalGatosRef.current = originalGatosRef.current.map((b) => (b.id === gato.id ? gato : b));
+        } else {
+            const idxRef = originalGatosRef.current.findIndex(
+                (b) =>
+                    (b.nome === gato.nome && b.idade === gato.idade) ||
+                    (typeof b.id === "string" && b.id.startsWith("temp-"))
+            );
+            if (idxRef !== -1) {
+                const copy = [...originalGatosRef.current];
+                copy[idxRef] = gato;
+                originalGatosRef.current = copy;
+            } else {
+                originalGatosRef.current = [gato, ...originalGatosRef.current];
+            }
+        }
+    };
+
+    const handleEdited = (gato: Gato) => {
+        originalGatosRef.current = originalGatosRef.current.map(b => b.id === gato.id ? gato : b);
+        setGatos(prev => prev.map(b => b.id === gato.id ? gato : b));
+    };
+
+    const handleDeleted = (gatoId: string) => {
+        originalGatosRef.current = originalGatosRef.current.filter(b => b.id !== gatoId);
+        setGatos(prev => prev.filter(b => b.id !== gatoId));
+    };
+
     return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col relative">
 
@@ -101,7 +165,7 @@ const Gatos : React.FC = () => {
 
       {/* 5. PopUp Modal */}
       {isModalOpen && (
-        <CadastroGato setIsModalOpen={setIsModalOpen} />
+        <CadastroGato setIsModalOpen={setIsModalOpen} onCreated={handleCreated} />
       )}
     </div>
     );
