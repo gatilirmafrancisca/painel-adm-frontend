@@ -90,7 +90,7 @@ const Gatos : React.FC = () => {
         </div>
 
         {/* 3. Tabela Principal */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6 flex-1 max-h-[500px] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6 flex-1 overflow-y-auto">
         <GatoTabela gatos={gatos} selectedGato={selectedGato} setSelectedGato={setSelectedGato} />
       </div>
 
