@@ -26,25 +26,33 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem(TOKEN_KEY);
-    } catch {
-      return null;
-    }
-  });
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checking, setChecking] = useState(true);
 
-  const [user, setUser] = useState<UserInfo | null>(() => {
+  const loadAuthFromStorage = () => {
     try {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
       const storedUser = localStorage.getItem(USER_KEY);
-      return storedUser ? JSON.parse(storedUser) : null;
+
+      setToken(storedToken);
+      setUser(storedUser ? JSON.parse(storedUser) : null);
+
+      if (!storedToken) {
+        setIsAuthenticated(false);
+        setChecking(false);
+      }
+
+      return storedToken;
     } catch {
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+      setChecking(false);
       return null;
     }
-  });
-
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [checking, setChecking] = useState<boolean>(!!token);
+  };
 
   const validateToken = async (): Promise<boolean> => {
     if (!token) {
@@ -54,7 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     setChecking(true);
-    const controller = new AbortController();
 
     try {
       const res = await fetch(`${BASEURL}${AUTH_VALIDATE_PATH}`, {
@@ -63,7 +70,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -83,13 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    if (!token) {
-      setIsAuthenticated(false);
-      setChecking(false);
-      return;
+    const storedToken = loadAuthFromStorage();
+    if (storedToken) {
+      void validateToken();
     }
-
-    void validateToken();
   }, []);
 
   useEffect(() => {
@@ -101,9 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!newToken) {
           setIsAuthenticated(false);
           setUser(null);
-        } else {
-          void validateToken();
+          return;
         }
+
+        void validateToken();
       }
 
       if (e.key === USER_KEY) {
