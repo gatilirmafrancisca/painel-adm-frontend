@@ -1,16 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { type Gato } from '~/types/gato.type';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ImageWithFallback } from '../ImageWithFallback';
-
 
 interface DetalhesGatoProps {
     gato: Gato;
     onClose: () => void;
 }
 
-
 const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onClose }) => {
+    // Estado local para controlar qual imagem está ativa no carrossel
+    const [currentImgIndex, setCurrentImgIndex] = useState<number>(0);
+
+    // Garante compatibilidade caso o backend envie um array de strings ou apenas uma string isolada
+    const imagens: string[] = Array.isArray(gato.imagemUrl) 
+        ? gato.imagemUrl 
+        : gato.imagemUrl ? [gato.imagemUrl] : [];
+
+    // Navegações seguras com efeito cíclico (volta pro começo ou fim)
+    const proximaImagem = () => {
+        setCurrentImgIndex((prev) => (prev + 1) % imagens.length);
+    };
+
+    const imagemAnterior = () => {
+        setCurrentImgIndex((prev) => (prev - 1 + imagens.length) % imagens.length);
+    };
 
     return (
         <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-[0_12px_40px_rgba(17,24,39,0.08)] border border-gray-100 flex flex-col gap-6 animate-in slide-in-from-bottom-4 duration-300">
@@ -19,22 +33,62 @@ const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onClose }) => {
             <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Idade (meses)</p><p className="font-medium text-gray-800 leading-snug">{gato.idade}</p></div>
             <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Status</p><p className="font-semibold text-gray-800 leading-snug">{gato.status}</p></div>
             <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">FIV/FeLV</p><p className="font-semibold text-[#ff9d3b] leading-snug">{gato.fivFelv}</p></div>
-            <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Personalidade</p><p className="font-medium text-gray-800 leading-snug break-words">{gato.personalidade.map((p) => p).join(', ')}</p></div>
-            <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Castrado</p><p className="font-medium text-gray-800 leading-snug">{gato.castrado ? 'Sim' : 'Não'}</p></div>
+            <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Personalidade</p><p className="font-medium text-gray-800 leading-snug break-words">{gato.personalidade?.join(', ') || 'Não informada'}</p></div>            <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Castrado</p><p className="font-medium text-gray-800 leading-snug">{gato.castrado ? 'Sim' : 'Não'}</p></div>
             <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Vacinado</p><p className="font-medium text-gray-800 leading-snug">{gato.vacinado ? 'Sim' : 'Não'}</p></div>
             <div className="rounded-xl bg-gray-50/80 p-4 border border-gray-100"><p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Vermifugado</p><p className="font-medium text-gray-800 leading-snug">{gato.vermifugado ? 'Sim' : 'Não'}</p></div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-4 sm:gap-6 items-start">
+            
+            {/* ATUALIZAÇÃO EXCLUSIVA NA DIV DA IMAGEM - ESTILO CARROSSEL INSTAGRAM */}
             <div className="space-y-2">
               <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Imagem</p>
-              <div className="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-sm">
+              
+              {/* Container de visualização relativa para suportar as setas absolutas */}
+              <div className="relative group overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-sm aspect-[4/3] flex items-center justify-center">
                 <ImageWithFallback
-                  src={gato.imagemUrl}
-                  alt={gato.nome}
-                  className="w-full h-auto max-h-[320px] lg:max-h-[420px] object-cover"
+                  src={imagens[currentImgIndex] || ''}
+                  alt={`${gato.nome} - Foto ${currentImgIndex + 1}`}
+                  className="w-full h-full object-cover transition-all duration-300"
                 />
+
+                {/* Controles de Seta Invisíveis por padrão no desktop, aparecem com o Hover (e sempre visíveis no mobile) */}
+                {imagens.length > 1 && (
+                    <>
+                        <button 
+                            onClick={imagemAnterior}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-md backdrop-blur-sm transition-all md:opacity-0 md:group-hover:opacity-100"
+                            aria-label="Imagem anterior"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button 
+                            onClick={proximaImagem}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-md backdrop-blur-sm transition-all md:opacity-0 md:group-hover:opacity-100"
+                            aria-label="Próxima imagem"
+                        >
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
+                    </>
+                )}
               </div>
+
+              {/* Bolinhas indicativas de paginação abaixo do carrossel */}
+              {imagens.length > 1 && (
+                  <div className="flex justify-center items-center gap-1.5 pt-1.5">
+                      {imagens.map((_, idx) => (
+                          <button
+                              key={idx}
+                              onClick={() => setCurrentImgIndex(idx)}
+                              className={`h-1.5 rounded-full transition-all duration-300 
+                                  ${idx === currentImgIndex 
+                                      ? 'w-4 bg-[#368c5e]' 
+                                      : 'w-1.5 bg-gray-300 hover:bg-gray-400'}`}
+                              aria-label={`Ir para imagem ${idx + 1}`}
+                          />
+                      ))}
+                  </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -55,7 +109,6 @@ const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onClose }) => {
           </div>
         </div>
     );
-
-}
+};
 
 export default DetalhesGato;
