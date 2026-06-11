@@ -1,11 +1,24 @@
 import { useState } from "react";
-import { Outlet } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import { Menu, X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import patternBg from "../assets/grafismo/1.png";
+import { useAuth } from "~/context/AuthContext";
+import Loader from "~/components/Loader";
+import "~/styles/loader.css";
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const auth = useAuth();
+
+  if (auth.checking) {
+    return <Loader />;
+  }
+
+  if (!auth.isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] font-sans text-[#1e1b1c] relative overflow-hidden">

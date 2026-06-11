@@ -38,7 +38,7 @@ const Login : React.FC = () => {
 
             setLoading(true);
 
-            const response = await fetch(`${BASEURL}/login`, {
+            const response = await fetch(`${BASEURL}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
