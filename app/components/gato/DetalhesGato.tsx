@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { type Gato } from '~/types/gato.type';
 import { Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ImageWithFallback } from '../ImageWithFallback';
+import Loader from "../Loader";
+import { successNotification } from '../ToasterComponents/ToasterNotifications';
 
 interface DetalhesGatoProps {
     gato: Gato;
-    onClose: () => void;
+    onDeleted: (gatoId: string) => void;
 }
 
-const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onClose }) => {
+const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onDeleted }) => {
     // Estado local para controlar qual imagem está ativa no carrossel
     const [currentImgIndex, setCurrentImgIndex] = useState<number>(0);
 
@@ -25,6 +27,37 @@ const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onClose }) => {
     const imagemAnterior = () => {
         setCurrentImgIndex((prev) => (prev - 1 + imagens.length) % imagens.length);
     };
+
+    const BASEURL = import.meta.env.VITE_BASE_URL ?? (typeof window !== "undefined" ? window.location.origin : "http://localhost");
+    const TOKEN_KEY = "token";
+
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const deleteGato = async (gatoId: string) => {
+
+        try {
+            setLoading(true);
+
+            const response = await fetch(`${BASEURL}/gatos/${gatoId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete gato");
+            }
+
+            const data = await response.json();
+            onDeleted(gatoId);
+            successNotification(data.message || "Gato deleted successfully");
+
+        } finally {
+
+            setLoading(false);
+        }
+    }
 
     return (
         <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-[0_12px_40px_rgba(17,24,39,0.08)] border border-gray-100 flex flex-col gap-6 animate-in slide-in-from-bottom-4 duration-300">
@@ -103,10 +136,19 @@ const DetalhesGato: React.FC<DetalhesGatoProps> = ({ gato, onClose }) => {
             <button className="inline-flex items-center justify-center gap-2 w-full sm:w-auto min-w-[180px] bg-[#ff9d3b] text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-[#e88a2a] transition-colors shadow-sm">
               <Edit2 className="w-4 h-4" /> Editar Cadastro
             </button>
-            <button className="inline-flex items-center justify-center gap-2 w-full sm:w-auto min-w-[180px] border border-gray-200 text-gray-600 px-5 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+            <button className="inline-flex items-center justify-center gap-2 w-full sm:w-auto min-w-[180px] border border-gray-200 text-gray-600 px-5 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              onClick={() => {
+                if (confirm("Tem certeza que deseja deletar este gato? Esta ação não pode ser desfeita.")) {
+                  deleteGato(gato.id);
+                }
+              }}
+                disabled={loading}
+            >
               <Trash2 className="w-4 h-4" /> Deletar Gato
             </button>
           </div>
+          {loading && (<div className="absolute inset-0 flex items-center justify-center z-50">
+                <Loader /> </div>)}
         </div>
     );
 };
