@@ -1,9 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import CadastroGato from '~/components/gato/CadastroGato';
 import { type Gato } from '../types/gato.type';
-import Loader from "~/components/Loader";
 import { Navigate } from 'react-router';
-import { useAuth } from "~/context/AuthContext";
 import GatoTabela from '~/components/gato/GatoTabela';
 import DetalhesGato from '~/components/gato/DetalhesGato';
 
@@ -60,16 +58,6 @@ const Gatos : React.FC = () => {
         fetchGatos();
 
     }, []);
-
-    const auth = useAuth();
-
-    if (auth.checking) {
-        return <Loader />;
-    }
-
-    if (!auth.isAuthenticated) {
-        return <Navigate to="/" replace />;
-    }
 
     const handleCreated = (gato: Gato) => {
         const isTemp = typeof gato.id === "string" && gato.id.startsWith("temp-");

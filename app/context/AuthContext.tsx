@@ -55,20 +55,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const validateToken = async (): Promise<boolean> => {
-    if (!token) {
+
+    const currentToken = localStorage.getItem(TOKEN_KEY);
+    if (!currentToken) {
       setIsAuthenticated(false);
       setChecking(false);
       return false;
     }
-
-    setChecking(true);
 
     try {
       const res = await fetch(`${BASEURL}${AUTH_VALIDATE_PATH}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${currentToken}`,
         },
       });
 
