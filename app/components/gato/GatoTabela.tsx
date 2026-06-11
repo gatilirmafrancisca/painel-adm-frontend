@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { Gato } from '~/types/gato.type';
-import {  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import {  Cat, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 interface GatoTabelaProps {
     gatos: Gato[];
@@ -19,7 +19,7 @@ const GatoTabela: React.FC<GatoTabelaProps> = ({ gatos, selectedGato, setSelecte
     // Pagination logic
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-    const totalPages = Math.ceil(localGatos.length / itemsPerPage);
+    const totalPages = Math.max(1, Math.ceil(localGatos.length / itemsPerPage));
 
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentGatos = localGatos.slice(startIndex, startIndex + itemsPerPage);
@@ -64,7 +64,23 @@ const GatoTabela: React.FC<GatoTabelaProps> = ({ gatos, selectedGato, setSelecte
         <div>
           {/* Mobile: Cards */}
           <div className="md:hidden space-y-3 p-4">
-            {currentGatos.map((gato) => (
+          
+            {currentGatos.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <Cat className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-lg font-medium text-gray-900 mb-1">Nenhum gato cadastrado</p>
+                      <p className="text-sm text-gray-500 max-w-sm">
+                        Ainda não há registros no sistema. Clique em "+ Criar Gato" para começar a gerenciar os felinos da ONG.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+            currentGatos.map((gato) => (
               <div
                 key={gato.id}
                 onClick={() => setSelectedGato(gato)}
@@ -95,7 +111,7 @@ const GatoTabela: React.FC<GatoTabelaProps> = ({ gatos, selectedGato, setSelecte
                   </div>
                 </div>
               </div>
-            ))}
+            )))}
           </div>
 
           {/* Desktop: Tabela */}
@@ -109,7 +125,22 @@ const GatoTabela: React.FC<GatoTabelaProps> = ({ gatos, selectedGato, setSelecte
               </tr>
             </thead>
             <tbody>
-              {currentGatos.map((gato) => (
+              {currentGatos.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <Cat className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-lg font-medium text-gray-900 mb-1">Nenhum gato cadastrado</p>
+                      <p className="text-sm text-gray-500 max-w-sm">
+                        Ainda não há registros no sistema. Clique em "+ Criar Gato" para começar a gerenciar os felinos da ONG.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+              currentGatos.map((gato) => (
                 <tr
                   key={gato.id}
                   onClick={() => setSelectedGato(gato)}
@@ -127,7 +158,7 @@ const GatoTabela: React.FC<GatoTabelaProps> = ({ gatos, selectedGato, setSelecte
                     </span>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
           </div>
@@ -135,7 +166,7 @@ const GatoTabela: React.FC<GatoTabelaProps> = ({ gatos, selectedGato, setSelecte
         <div className="bg-gray-50/80 border-t border-gray-100 p-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <p className="text-sm text-gray-500">
-              Mostrando <span className="font-medium text-gray-900">{Math.min(startIndex + 1, localGatos.length)}</span> a{' '}
+              Mostrando <span className="font-medium text-gray-900">{localGatos.length === 0 ? 0 : startIndex + 1}</span> a{' '}
               <span className="font-medium text-gray-900">{Math.min(startIndex + itemsPerPage, localGatos.length)}</span> de{' '}
               <span className="font-medium text-gray-900">{localGatos.length}</span> gatos
             </p>
@@ -183,8 +214,11 @@ const GatoTabela: React.FC<GatoTabelaProps> = ({ gatos, selectedGato, setSelecte
                   <button
                     key={`page-${item}`}
                     onClick={() => setCurrentPage(item as number)}
+                    disabled={localGatos.length === 0}
                     className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                      currentPage === item 
+                      localGatos.length === 0
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : currentPage === item 
                         ? 'bg-[#368c5e] text-white shadow-sm' 
                         : 'text-gray-600 hover:bg-gray-200'
                     }`}
