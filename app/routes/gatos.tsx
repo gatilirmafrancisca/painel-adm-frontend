@@ -121,6 +121,7 @@ const Gatos : React.FC = () => {
     const handleDeleted = (gatoId: string) => {
         originalGatosRef.current = originalGatosRef.current.filter(b => b.id !== gatoId);
         setGatos(prev => prev.filter(b => b.id !== gatoId));
+        setSelectedGato(null);
     };
 
     return (
@@ -148,7 +149,7 @@ const Gatos : React.FC = () => {
 
         {/* 4. Detalhes do Gato Selecionado */}
       {selectedGato && (
-        <DetalhesGato gato={selectedGato} onClose={() => setSelectedGato(null)} />
+        <DetalhesGato gato={selectedGato} onDeleted={handleDeleted} />
       )}
 
       {/* 5. PopUp Modal */}
