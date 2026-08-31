@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wallet, Cat, Users } from "lucide-react";
+import { LayoutDashboard, Wallet, Cat, Users, Gift } from "lucide-react";
 
 export const sidebarGroups = [
   {
@@ -8,6 +8,7 @@ export const sidebarGroups = [
       { path: "/financeiro", label: "Financeiro", icon: Wallet },
       { path: "/gatos", label: "Gatos", icon: Cat },
       { path: "/voluntarios", label: "Voluntários", icon: Users },
+      { path: "/rifasolidaria", label: "Rifa", icon: Gift }
     ],
   },
 ];
