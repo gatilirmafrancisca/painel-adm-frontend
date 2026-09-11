@@ -67,6 +67,7 @@ export const FormularioCadastroRifa: React.FC<FormularioCadastroRifaProps> = ({
         name: dados.name.trim(),
         phone: dados.phone.trim(),
         email: dados.email.trim(),
+        status: "PENDENTE",
       });
       reset({ name: "", phone: "", email: "", claimedNumber: "" });
     } catch {
