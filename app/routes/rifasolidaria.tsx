@@ -17,6 +17,7 @@ function normalizarRifa(item: any): Rifa {
     name: String(item?.name ?? ""),
     phone: String(item?.phone ?? ""),
     email: String(item?.email ?? ""),
+    status: String(item?.status ?? "PENDENTE") as "PENDENTE" | "APROVADO" | "CANCELADO",
   };
 }
 

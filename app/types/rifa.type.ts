@@ -4,6 +4,7 @@ type Rifa = {
     name : string,
     phone : string,
     email : string,
+    status: "PENDENTE" | "APROVADO" | "CANCELADO",
 }
 
 type CriarRifaFormData = {
