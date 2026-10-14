@@ -23,6 +23,8 @@ function normalizarRifa(item: any): Rifa {
 
 const RifaSolidaria: React.FC = () => {
   const [rifas, setRifas] = useState<Rifa[]>([]);
+  const numerosRestantes = 500 - rifas.length;
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -167,6 +169,12 @@ const RifaSolidaria: React.FC = () => {
 
       {/* 3. Conteúdo principal */}
       <div className="mb-6 flex-1 overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-sm">
+
+        <div className="px-4 py-3 text-sm text-gray-700">
+          <span className="font-medium font-bold">{rifas.length}</span> números ocupados,{" "}
+          <span className="font-medium font-bold">{numerosRestantes}</span> restantes.
+        </div>
+
         {modo === "tabela" ? (
           <TabelaRifas rifas={rifasFiltradas} isLoading={isLoading} onSelecionar={setRifaDetalhes} />
         ) : (

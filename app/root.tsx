@@ -11,8 +11,17 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "./context/AuthContext";
+import { MOCK_API_ENABLED } from "./mocks/mockFlag";
 
 import "react-toastify/dist/ReactToastify.css";
+
+// Modo demo: responde às chamadas do backend com dados fictícios. Desligado se VITE_MOCK_API não for "true".
+// Import dinâmico para o código do mock não entrar no build de produção; o await garante que o
+// fetch já está interceptado antes do AuthProvider validar o token.
+if (MOCK_API_ENABLED && typeof window !== "undefined") {
+  const { installMockApi } = await import("./mocks/mockApi");
+  installMockApi(import.meta.env.VITE_BASE_URL ?? window.location.origin);
+}
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -57,6 +66,11 @@ export default function App() {
     <AuthProvider>
       <Outlet />
       <ToastContainer />
+      {MOCK_API_ENABLED && (
+        <div className="pointer-events-none fixed bottom-3 right-3 z-[100] rounded-full bg-[#ff9d3b] px-3 py-1 text-xs font-bold text-white shadow-md">
+          MODO DEMO — dados fictícios
+        </div>
+      )}
     </AuthProvider>
   );
 }
