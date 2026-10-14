@@ -6,6 +6,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
+    "dev:mock": "react-router dev --mode mock",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },

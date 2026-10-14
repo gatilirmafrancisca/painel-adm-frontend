@@ -34,6 +34,25 @@ npm run dev
 
 Your application will be available at `http://localhost:5173`.
 
+### Testar sem backend (modo demo)
+
+Para ver as telas sem subir o backend, rode:
+
+```bash
+npm run dev:mock
+```
+
+Ou defina `VITE_MOCK_API=true` no seu `.env` e rode `npm run dev`.
+
+No modo demo:
+
+- o login aceita qualquer usuário e senha;
+- `/gatos` e `/rifasolidaria` mostram dados de teste (`app/mocks/mockData.ts`);
+- cadastrar e excluir gatos e números da rifa funciona, mas tudo fica só na memória e volta ao padrão quando a página é recarregada;
+- um selo "MODO DEMO" aparece no canto da tela.
+
+O modo demo só liga quando `VITE_MOCK_API` vale exatamente `true`. Sem a variável ele fica desligado, então não é preciso configurar nada em produção (Vercel).
+
 ## Building for Production
 
 Create a production build:
