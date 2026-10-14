@@ -10,6 +10,7 @@ import Loader from "~/components/Loader";
 import "~/styles/loader.css";
 import { ImageWithFallback } from "~/components/ImageWithFallback";
 import patternBg from "../assets/grafismo/1.png";
+import { MOCK_API_ENABLED } from "~/mocks/mockFlag";
 
 
 interface Props {
@@ -115,6 +116,12 @@ const Login : React.FC = () => {
             <LoginButton message={"Entrar"} />
             
         </form>
+
+        {MOCK_API_ENABLED && (
+            <p className="mt-4 rounded-lg bg-[#fff4e8] px-3 py-2 text-center text-xs text-[#b36312]">
+                Modo demo: qualquer usuário e senha funcionam.
+            </p>
+        )}
 
         {loading && (
             <Loader />
