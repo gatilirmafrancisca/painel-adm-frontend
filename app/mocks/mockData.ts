@@ -1,5 +1,5 @@
 import type { Gato } from "~/types/gato.type";
-import type { Rifa } from "~/types/rifa.type";
+import type { PendenteEscolha, Reserva, Rifa } from "~/types/rifa.type";
 
 // Dados fictícios usados apenas quando VITE_MOCK_API=true (ver app/mocks/mockApi.ts).
 
@@ -255,3 +255,19 @@ export const rifasMock = (): Rifa[] => NUMEROS_OCUPADOS.map((claimedNumber, i) =
     status: STATUS[i % STATUS.length],
   };
 });
+
+const diasAtras = (dias: number) => new Date(Date.now() - dias * 24 * 60 * 60_000).toISOString();
+const minutosAtras = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
+
+// Pagaram e ainda não escolheram o número (prazo de 20 dias até o sorteio).
+export const pendentesEscolhaMock = (): PendenteEscolha[] => [
+  { paymentId: "151245367001", email: "paula.nunes@exemplo.com", pagoEm: diasAtras(18), diasRestantes: 2 },
+  { paymentId: "151245367002", email: "rafael.teles@exemplo.com", pagoEm: diasAtras(9), diasRestantes: 11 },
+  { paymentId: "151245367003", email: "sofia.lopes@exemplo.com", pagoEm: diasAtras(1), diasRestantes: 19 },
+];
+
+// Pix gerado e ainda não pago.
+export const reservasMock = (): Reserva[] => [
+  { paymentId: "151245367010", email: "tiago.moura@exemplo.com", criadoEm: minutosAtras(6) },
+  { paymentId: "151245367011", email: "vera.campos@exemplo.com", criadoEm: minutosAtras(22) },
+];
