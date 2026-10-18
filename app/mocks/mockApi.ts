@@ -1,6 +1,6 @@
 import type { Gato } from "~/types/gato.type";
 import type { Rifa } from "~/types/rifa.type";
-import { gatosMock, MOCK_TOKEN, MOCK_USER, rifasMock } from "./mockData";
+import { gatosMock, MOCK_TOKEN, MOCK_USER, pendentesEscolhaMock, reservasMock, rifasMock } from "./mockData";
 
 // Modo mock: intercepta o fetch do navegador e responde às rotas do backend com dados
 // fictícios em memória. Só é carregado quando VITE_MOCK_API=true (ver app/root.tsx).
@@ -115,6 +115,23 @@ export function installMockApi(baseUrl: string) {
     if (method === "GET" && path === "/rifa/listar-rifas") {
       if (!autorizado(req)) return json(401, { message: "Não autorizado" });
       return json(200, { data: rifas });
+    }
+
+    if (method === "GET" && path === "/rifa/resumo") {
+      if (!autorizado(req)) return json(401, { message: "Não autorizado" });
+      const pendentesEscolha = pendentesEscolhaMock();
+      const reservadas = reservasMock();
+      const compradas = rifas.filter((r) => r.status !== "CANCELADO").length;
+      return json(200, {
+        data: {
+          total: 500,
+          compradas,
+          pendentesEscolha: pendentesEscolha.length,
+          reservadas: reservadas.length,
+          disponiveis: 500 - compradas - pendentesEscolha.length - reservadas.length,
+          listas: { pendentesEscolha, reservadas },
+        },
+      });
     }
 
     if (method === "POST" && path === "/rifa/criar-rifa") {

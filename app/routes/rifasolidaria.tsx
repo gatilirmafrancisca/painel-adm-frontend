@@ -3,7 +3,8 @@ import TabelaRifas from "../components/rifa/TabelaRifas";
 import { GradeRifas } from "../components/rifa/GradeRifas";
 import { ModalCadastroRifa } from "../components/rifa/ModalCadastroRifa";
 import { DetalhesNumeroModal } from "../components/rifa/DetalhesNumeroModal";
-import type { Rifa } from "../types/rifa.type";
+import { ResumoRifas } from "../components/rifa/ResumoRifas";
+import type { Rifa, ResumoRifas as Resumo } from "../types/rifa.type";
 
 const BASEURL =
   import.meta.env.VITE_BASE_URL ??
@@ -23,7 +24,7 @@ function normalizarRifa(item: any): Rifa {
 
 const RifaSolidaria: React.FC = () => {
   const [rifas, setRifas] = useState<Rifa[]>([]);
-  const numerosRestantes = 500 - rifas.length;
+  const [resumo, setResumo] = useState<Resumo | null>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -34,6 +35,31 @@ const RifaSolidaria: React.FC = () => {
   const [modalCadastroAberto, setModalCadastroAberto] = useState(false);
   const [numeroPrePreenchido, setNumeroPrePreenchido] = useState<number | null>(null);
   const [rifaDetalhes, setRifaDetalhes] = useState<Rifa | null>(null);
+
+  // Situação das vagas (compradas, pendentes de escolha, reservadas,
+  // disponíveis). Falha aqui não esconde a tabela: só some o resumo.
+  const fetchResumo = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${BASEURL}/rifa/resumo`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        setResumo(null);
+        return;
+      }
+      const payload = await response.json();
+      setResumo(payload?.data ?? null);
+    } catch {
+      setResumo(null);
+    }
+  }, []);
 
   const fetchDados = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -80,7 +106,8 @@ const RifaSolidaria: React.FC = () => {
 
   useEffect(() => {
     fetchDados();
-  }, [fetchDados]);
+    fetchResumo();
+  }, [fetchDados, fetchResumo]);
 
   const rifasFiltradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -105,10 +132,12 @@ const RifaSolidaria: React.FC = () => {
         (a, b) => a.claimedNumber - b.claimedNumber
       )
     );
+    fetchResumo();
   }
 
   function handleRifaExcluida(claimedNumber: number) {
     setRifas((atual) => atual.filter((r) => r.claimedNumber !== claimedNumber));
+    fetchResumo();
   }
 
   function abrirCadastro(numero: number | null = null) {
@@ -134,6 +163,8 @@ const RifaSolidaria: React.FC = () => {
           {erro}
         </div>
       )}
+
+      <ResumoRifas resumo={resumo} isLoading={isLoading} />
 
       {/* 2. Busca + alternância de visualização */}
       <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
@@ -169,11 +200,6 @@ const RifaSolidaria: React.FC = () => {
 
       {/* 3. Conteúdo principal */}
       <div className="mb-6 flex-1 overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-sm">
-
-        <div className="px-4 py-3 text-sm text-gray-700">
-          <span className="font-medium font-bold">{rifas.length}</span> números ocupados,{" "}
-          <span className="font-medium font-bold">{numerosRestantes}</span> restantes.
-        </div>
 
         {modo === "tabela" ? (
           <TabelaRifas rifas={rifasFiltradas} isLoading={isLoading} onSelecionar={setRifaDetalhes} />
