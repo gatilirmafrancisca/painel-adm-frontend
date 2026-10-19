@@ -18,7 +18,8 @@ type CriarRifaFormData = {
 type ContatoPagamento = {
   paymentId: string,
   email: string | null,
-  nomePagador: string | null, // nome no Pix (banco) ou titular do cartão
+  nomePagador: string | null, // pagador ou titular do cartão (no Pix o MP não informa)
+  bancoPagador: string | null, // banco de origem do Pix — não é a pessoa
   metodoPagamento: string | null, // "pix", "cartao" ou o tipo do Mercado Pago
   linkEscolha: string | null, // link para escolher o número
 }

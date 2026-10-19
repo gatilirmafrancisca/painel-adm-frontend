@@ -34,6 +34,19 @@ function formatarData(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+/** Data e hora — o que permite achar um Pix no extrato. */
+function formatarDataHora(iso: string): string {
+  const d = new Date(iso);
+  return `${formatarData(iso)} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+/** Como o pagamento chegou: "Pix · NU PAGAMENTOS S.A.", "Cartão"... */
+function origem(item: ContatoPagamento): string | null {
+  if (item.metodoPagamento === "pix") return item.bancoPagador ? `Pix · ${item.bancoPagador}` : "Pix";
+  if (item.metodoPagamento === "cartao") return "Cartão";
+  return item.bancoPagador;
+}
+
 function tempoDesde(iso: string): string {
   const minutos = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
   if (minutos < 60) return `há ${minutos} min`;
@@ -63,7 +76,8 @@ function Identificacao({ item }: { item: ContatoPagamento }) {
   }
   return (
     <p className="flex flex-wrap items-center gap-2 font-medium text-[#1e1b1c]">
-      <span className="truncate">{item.nomePagador ?? "Sem nome nem e-mail"}</span>
+      {/* No Pix o Mercado Pago não informa nome nem e-mail de quem pagou. */}
+      <span className="truncate">{item.nomePagador ?? "Pagador não identificado"}</span>
       <span className="rounded-full bg-[#fdebd9] px-2 py-0.5 text-[11px] font-semibold text-[#a4520b]">Sem e-mail</span>
     </p>
   );
@@ -219,7 +233,9 @@ function ListaPendentes({ itens, baseUrl, onAtualizado }: ListaProps<PendenteEsc
         <LinhaPagamento
           key={item.paymentId}
           item={item}
-          detalhe={`Pago em ${formatarData(item.pagoEm)} · ID ${item.paymentId}`}
+          detalhe={[`Pago em ${formatarDataHora(item.pagoEm)}`, origem(item), `ID ${item.paymentId}`]
+            .filter(Boolean)
+            .join(" · ")}
           permiteCopiarLink
           baseUrl={baseUrl}
           onAtualizado={onAtualizado}
@@ -247,7 +263,7 @@ function ListaReservas({ itens, baseUrl, onAtualizado }: ListaProps<Reserva>) {
         <LinhaPagamento
           key={item.paymentId}
           item={item}
-          detalhe={`ID ${item.paymentId}`}
+          detalhe={[origem(item), `ID ${item.paymentId}`].filter(Boolean).join(" · ")}
           // Ainda não foi pago: o link de escolha não funcionaria.
           permiteCopiarLink={false}
           baseUrl={baseUrl}

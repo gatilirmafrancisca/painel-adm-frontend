@@ -265,13 +265,13 @@ const linkMock = (id: string) => `https://rifa.exemplo.org/rifa/pagamento-aprova
 // Alguns sem e-mail (o Mercado Pago nem sempre devolve): o painel mostra o
 // nome de quem pagou e permite informar o e-mail.
 export const pendentesEscolhaMock = (): PendenteEscolha[] => [
-  { paymentId: "151245367001", email: "paula.nunes@exemplo.com", nomePagador: "PAULA NUNES", metodoPagamento: "pix", linkEscolha: linkMock("151245367001"), pagoEm: diasAtras(18), diasRestantes: 2 },
-  { paymentId: "151245367002", email: null, nomePagador: "RAFAEL TELES", metodoPagamento: "pix", linkEscolha: linkMock("151245367002"), pagoEm: diasAtras(9), diasRestantes: 11 },
-  { paymentId: "151245367003", email: null, nomePagador: null, metodoPagamento: "cartao", linkEscolha: linkMock("151245367003"), pagoEm: diasAtras(1), diasRestantes: 19 },
+  { paymentId: "151245367001", email: "paula.nunes@exemplo.com", nomePagador: null, bancoPagador: "NU PAGAMENTOS S.A.", metodoPagamento: "pix", linkEscolha: linkMock("151245367001"), pagoEm: diasAtras(18), diasRestantes: 2 },
+  { paymentId: "151245367002", email: null, nomePagador: null, bancoPagador: "BANCO BRADESCO S.A.", metodoPagamento: "pix", linkEscolha: linkMock("151245367002"), pagoEm: diasAtras(9), diasRestantes: 11 },
+  { paymentId: "151245367003", email: null, nomePagador: "SOFIA LOPES", bancoPagador: null, metodoPagamento: "cartao", linkEscolha: linkMock("151245367003"), pagoEm: diasAtras(1), diasRestantes: 19 },
 ];
 
 // Pix gerado e ainda não pago.
 export const reservasMock = (): Reserva[] => [
-  { paymentId: "151245367010", email: "tiago.moura@exemplo.com", nomePagador: null, metodoPagamento: "pix", linkEscolha: linkMock("151245367010"), criadoEm: minutosAtras(6) },
-  { paymentId: "151245367011", email: null, nomePagador: "VERA CAMPOS", metodoPagamento: "cartao", linkEscolha: linkMock("151245367011"), criadoEm: minutosAtras(60 * 26) },
+  { paymentId: "151245367010", email: "tiago.moura@exemplo.com", nomePagador: null, bancoPagador: null, metodoPagamento: "pix", linkEscolha: linkMock("151245367010"), criadoEm: minutosAtras(6) },
+  { paymentId: "151245367011", email: null, nomePagador: "VERA CAMPOS", bancoPagador: null, metodoPagamento: "cartao", linkEscolha: linkMock("151245367011"), criadoEm: minutosAtras(60 * 26) },
 ];
