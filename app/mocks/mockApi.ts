@@ -67,6 +67,8 @@ export function installMockApi(baseUrl: string) {
   // Banco em memória: reseta ao recarregar a página.
   let gatos: Gato[] = gatosMock();
   let rifas: Rifa[] = rifasMock();
+  let pendentesEscolha = pendentesEscolhaMock();
+  let reservas = reservasMock();
   let proximoId = gatos.length + 1;
 
   const base = baseUrl.replace(/\/+$/, "");
@@ -119,8 +121,7 @@ export function installMockApi(baseUrl: string) {
 
     if (method === "GET" && path === "/rifa/resumo") {
       if (!autorizado(req)) return json(401, { message: "Não autorizado" });
-      const pendentesEscolha = pendentesEscolhaMock();
-      const reservadas = reservasMock();
+      const reservadas = reservas;
       const compradas = rifas.filter((r) => r.status !== "CANCELADO").length;
       return json(200, {
         data: {
@@ -132,6 +133,20 @@ export function installMockApi(baseUrl: string) {
           listas: { pendentesEscolha, reservadas },
         },
       });
+    }
+
+    const emailMatch = path.match(/^\/rifa\/pagamento\/([^/]+)\/email$/);
+    if (method === "PATCH" && emailMatch) {
+      if (!autorizado(req)) return json(401, { message: "Não autorizado" });
+      const id = decodeURIComponent(emailMatch[1]);
+      const email = String(lerJson(req.body)?.email ?? "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json(400, { message: "O campo 'E-mail' não parece válido." });
+      if (![...pendentesEscolha, ...reservas].some((p) => p.paymentId === id)) {
+        return json(404, { message: "Pagamento não encontrado (ou cancelado)." });
+      }
+      pendentesEscolha = pendentesEscolha.map((p) => (p.paymentId === id ? { ...p, email } : p));
+      reservas = reservas.map((p) => (p.paymentId === id ? { ...p, email } : p));
+      return json(200, { message: "E-mail atualizado.", data: { paymentId: id, email } });
     }
 
     if (method === "POST" && path === "/rifa/criar-rifa") {

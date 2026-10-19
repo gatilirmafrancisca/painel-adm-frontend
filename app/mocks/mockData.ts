@@ -260,14 +260,18 @@ const diasAtras = (dias: number) => new Date(Date.now() - dias * 24 * 60 * 60_00
 const minutosAtras = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
 
 // Pagaram e ainda não escolheram o número (prazo de 20 dias até o sorteio).
+const linkMock = (id: string) => `https://rifa.exemplo.org/rifa/pagamento-aprovado?payment_id=${id}`;
+
+// Alguns sem e-mail (o Mercado Pago nem sempre devolve): o painel mostra o
+// nome de quem pagou e permite informar o e-mail.
 export const pendentesEscolhaMock = (): PendenteEscolha[] => [
-  { paymentId: "151245367001", email: "paula.nunes@exemplo.com", pagoEm: diasAtras(18), diasRestantes: 2 },
-  { paymentId: "151245367002", email: "rafael.teles@exemplo.com", pagoEm: diasAtras(9), diasRestantes: 11 },
-  { paymentId: "151245367003", email: "sofia.lopes@exemplo.com", pagoEm: diasAtras(1), diasRestantes: 19 },
+  { paymentId: "151245367001", email: "paula.nunes@exemplo.com", nomePagador: "PAULA NUNES", metodoPagamento: "pix", linkEscolha: linkMock("151245367001"), pagoEm: diasAtras(18), diasRestantes: 2 },
+  { paymentId: "151245367002", email: null, nomePagador: "RAFAEL TELES", metodoPagamento: "pix", linkEscolha: linkMock("151245367002"), pagoEm: diasAtras(9), diasRestantes: 11 },
+  { paymentId: "151245367003", email: null, nomePagador: null, metodoPagamento: "cartao", linkEscolha: linkMock("151245367003"), pagoEm: diasAtras(1), diasRestantes: 19 },
 ];
 
 // Pix gerado e ainda não pago.
 export const reservasMock = (): Reserva[] => [
-  { paymentId: "151245367010", email: "tiago.moura@exemplo.com", criadoEm: minutosAtras(6) },
-  { paymentId: "151245367011", email: "vera.campos@exemplo.com", criadoEm: minutosAtras(22) },
+  { paymentId: "151245367010", email: "tiago.moura@exemplo.com", nomePagador: null, metodoPagamento: "pix", linkEscolha: linkMock("151245367010"), criadoEm: minutosAtras(6) },
+  { paymentId: "151245367011", email: null, nomePagador: "VERA CAMPOS", metodoPagamento: "cartao", linkEscolha: linkMock("151245367011"), criadoEm: minutosAtras(60 * 26) },
 ];
