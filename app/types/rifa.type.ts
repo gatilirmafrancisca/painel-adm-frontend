@@ -14,18 +14,23 @@ type CriarRifaFormData = {
   email: string,
 }
 
-/** Quem pagou e ainda não escolheu o número (GET /rifa/resumo). */
-type PendenteEscolha = {
+/** Contato de um pagamento sem número (GET /rifa/resumo). */
+type ContatoPagamento = {
   paymentId: string,
   email: string | null,
+  nomePagador: string | null, // nome no Pix (banco) ou titular do cartão
+  metodoPagamento: string | null, // "pix", "cartao" ou o tipo do Mercado Pago
+  linkEscolha: string | null, // link para escolher o número
+}
+
+/** Quem pagou e ainda não escolheu o número. */
+type PendenteEscolha = ContatoPagamento & {
   pagoEm: string, // ISO
   diasRestantes: number, // até o número ser sorteado
 }
 
-/** Pix gerado e ainda não pago: ocupa a vaga até vencer. */
-type Reserva = {
-  paymentId: string,
-  email: string | null,
+/** Pagamento iniciado e ainda não aprovado: ocupa a vaga até vencer. */
+type Reserva = ContatoPagamento & {
   criadoEm: string, // ISO
 }
 
@@ -41,4 +46,4 @@ type ResumoRifas = {
   },
 }
 
-export type { Rifa, CriarRifaFormData, PendenteEscolha, Reserva, ResumoRifas };
+export type { Rifa, CriarRifaFormData, ContatoPagamento, PendenteEscolha, Reserva, ResumoRifas };
