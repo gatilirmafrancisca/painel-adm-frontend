@@ -164,7 +164,7 @@ const RifaSolidaria: React.FC = () => {
         </div>
       )}
 
-      <ResumoRifas resumo={resumo} isLoading={isLoading} />
+      <ResumoRifas resumo={resumo} isLoading={isLoading} baseUrl={BASEURL} onAtualizado={fetchResumo} />
 
       {/* 2. Busca + alternância de visualização */}
       <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">

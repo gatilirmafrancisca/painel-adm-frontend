@@ -1,10 +1,14 @@
-import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import type { PendenteEscolha, Reserva, ResumoRifas as Resumo } from "../../types/rifa.type";
+import { useState, type ReactNode } from "react";
+import { ChevronDown, ChevronUp, Copy, Mail } from "lucide-react";
+import { errorNotification, successNotification } from "../ToasterComponents/ToasterNotifications";
+import type { ContatoPagamento, PendenteEscolha, Reserva, ResumoRifas as Resumo } from "../../types/rifa.type";
 
 interface ResumoRifasProps {
   resumo: Resumo | null;
   isLoading: boolean;
+  baseUrl: string;
+  /** Recarrega o resumo depois de informar um e-mail. */
+  onAtualizado: () => void;
 }
 
 type Categoria = "compradas" | "pendentesEscolha" | "reservadas" | "disponiveis";
@@ -15,7 +19,7 @@ type ListaAberta = "pendentesEscolha" | "reservadas" | null;
 const CATEGORIAS: { chave: Categoria; rotulo: string; descricao: string; cor: string }[] = [
   { chave: "compradas", rotulo: "Compradas", descricao: "Pagas e com número escolhido", cor: "#368c5e" },
   { chave: "pendentesEscolha", rotulo: "Pendentes de escolha", descricao: "Pagas, sem número escolhido", cor: "#f08c2e" },
-  { chave: "reservadas", rotulo: "Reservadas", descricao: "Pix gerado, aguardando pagamento", cor: "#6b88ad" },
+  { chave: "reservadas", rotulo: "Reservadas", descricao: "Pagamento iniciado, aguardando aprovação", cor: "#6b88ad" },
   { chave: "disponiveis", rotulo: "Disponíveis", descricao: "Livres para venda", cor: "#d9d9d2" },
 ];
 
@@ -45,50 +49,215 @@ function textoPrazo(dias: number): string {
   return `Sorteio em ${dias} dias`;
 }
 
+/** Selo das reservas: o que de fato está pendente no Mercado Pago. */
+function textoReserva(metodo: string | null, criadoEm: string): string {
+  if (metodo === "pix") return `Pix gerado ${tempoDesde(criadoEm)}`;
+  if (metodo === "cartao") return `Cartão em análise ${tempoDesde(criadoEm)}`;
+  return `Aguardando pagamento ${tempoDesde(criadoEm)}`;
+}
+
+/** Quem pagou: e-mail ou, sem ele, o nome que veio do Mercado Pago. */
+function Identificacao({ item }: { item: ContatoPagamento }) {
+  if (item.email) {
+    return <p className="truncate font-medium text-[#1e1b1c]">{item.email}</p>;
+  }
+  return (
+    <p className="flex flex-wrap items-center gap-2 font-medium text-[#1e1b1c]">
+      <span className="truncate">{item.nomePagador ?? "Sem nome nem e-mail"}</span>
+      <span className="rounded-full bg-[#fdebd9] px-2 py-0.5 text-[11px] font-semibold text-[#a4520b]">Sem e-mail</span>
+    </p>
+  );
+}
+
+const botaoAcao =
+  "inline-flex items-center gap-1 rounded-md border border-[#e3e3dd] bg-white px-2.5 py-1 text-xs font-semibold text-[#1a5331] transition-colors hover:border-[#368c5e] hover:bg-[#f4faf6]";
+
+/** Campo para informar o e-mail de quem ficou sem — o backend da rifa passa a mandar os lembretes. */
+function FormEmail({
+  paymentId,
+  baseUrl,
+  onSalvo,
+  onCancelar,
+}: {
+  paymentId: string;
+  baseUrl: string;
+  onSalvo: () => void;
+  onCancelar: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
+  async function salvar(e: React.FormEvent) {
+    e.preventDefault();
+    setSalvando(true);
+    try {
+      const response = await fetch(`${baseUrl}/rifa/pagamento/${encodeURIComponent(paymentId)}/email`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+        },
+        body: JSON.stringify({ email }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        errorNotification(payload?.message ?? "Não foi possível salvar o e-mail.");
+        return;
+      }
+      successNotification("E-mail salvo. Os lembretes de escolha passam a ir para ele.");
+      onSalvo();
+    } catch {
+      errorNotification("Erro de conexão ao salvar o e-mail.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <form onSubmit={salvar} className="flex w-full flex-wrap items-center gap-2">
+      <input
+        type="email"
+        required
+        autoFocus
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="email@exemplo.com"
+        aria-label={`E-mail do pagamento ${paymentId}`}
+        className="min-w-[200px] flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-[#368c5e] focus:ring-1 focus:ring-[#368c5e]"
+      />
+      <button
+        type="submit"
+        disabled={salvando}
+        className="rounded-md bg-[#368c5e] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#1a5331] disabled:opacity-60"
+      >
+        {salvando ? "Salvando..." : "Salvar"}
+      </button>
+      <button type="button" onClick={onCancelar} className="px-2 py-1.5 text-xs font-semibold text-[#5a5a54] hover:underline">
+        Cancelar
+      </button>
+    </form>
+  );
+}
+
+/** Linha de um pagamento: quem pagou, um selo e as ações de contato. */
+function LinhaPagamento({
+  item,
+  detalhe,
+  selo,
+  permiteCopiarLink,
+  baseUrl,
+  onAtualizado,
+}: {
+  item: ContatoPagamento;
+  detalhe: string;
+  selo: ReactNode;
+  permiteCopiarLink: boolean;
+  baseUrl: string;
+  onAtualizado: () => void;
+}) {
+  const [editando, setEditando] = useState(false);
+
+  async function copiarLink() {
+    if (!item.linkEscolha) return;
+    try {
+      await navigator.clipboard.writeText(item.linkEscolha);
+      successNotification("Link copiado. Envie para a pessoa escolher o número.");
+    } catch {
+      window.prompt("Copie o link de escolha:", item.linkEscolha);
+    }
+  }
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 text-sm">
+      <div className="min-w-0">
+        <Identificacao item={item} />
+        <p className="text-xs text-[#9a9a92]">{detalhe}</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {permiteCopiarLink && item.linkEscolha && (
+          <button type="button" onClick={copiarLink} className={botaoAcao}>
+            <Copy size={12} /> Copiar link de escolha
+          </button>
+        )}
+        {!item.email && !editando && (
+          <button type="button" onClick={() => setEditando(true)} className={botaoAcao}>
+            <Mail size={12} /> Adicionar e-mail
+          </button>
+        )}
+        {selo}
+      </div>
+      {editando && (
+        <FormEmail
+          paymentId={item.paymentId}
+          baseUrl={baseUrl}
+          onCancelar={() => setEditando(false)}
+          onSalvo={() => {
+            setEditando(false);
+            onAtualizado();
+          }}
+        />
+      )}
+    </li>
+  );
+}
+
 function ListaVazia() {
   return <p className="px-4 py-6 text-center text-sm text-[#9a9a92]">Nenhum pagamento nesta situação.</p>;
 }
 
-function ListaPendentes({ itens }: { itens: PendenteEscolha[] }) {
+interface ListaProps<T> {
+  itens: T[];
+  baseUrl: string;
+  onAtualizado: () => void;
+}
+
+function ListaPendentes({ itens, baseUrl, onAtualizado }: ListaProps<PendenteEscolha>) {
   if (itens.length === 0) return <ListaVazia />;
   return (
     <ul className="divide-y divide-[#efefea]">
       {itens.map((item) => (
-        <li key={item.paymentId} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-sm">
-          <div className="min-w-0">
-            <p className="truncate font-medium text-[#1e1b1c]">{item.email ?? "Sem e-mail"}</p>
-            <p className="text-xs text-[#9a9a92]">
-              Pago em {formatarData(item.pagoEm)} · ID {item.paymentId}
-            </p>
-          </div>
-          <span
-            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-              item.diasRestantes <= 5 ? "bg-[#fdebd9] text-[#a4520b]" : "bg-[#f3f3ef] text-[#5a5a54]"
-            }`}
-            title="Dias até o número ser sorteado para essa pessoa"
-          >
-            {textoPrazo(item.diasRestantes)}
-          </span>
-        </li>
+        <LinhaPagamento
+          key={item.paymentId}
+          item={item}
+          detalhe={`Pago em ${formatarData(item.pagoEm)} · ID ${item.paymentId}`}
+          permiteCopiarLink
+          baseUrl={baseUrl}
+          onAtualizado={onAtualizado}
+          selo={
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                item.diasRestantes <= 5 ? "bg-[#fdebd9] text-[#a4520b]" : "bg-[#f3f3ef] text-[#5a5a54]"
+              }`}
+              title="Dias até o número ser sorteado para essa pessoa"
+            >
+              {textoPrazo(item.diasRestantes)}
+            </span>
+          }
+        />
       ))}
     </ul>
   );
 }
 
-function ListaReservas({ itens }: { itens: Reserva[] }) {
+function ListaReservas({ itens, baseUrl, onAtualizado }: ListaProps<Reserva>) {
   if (itens.length === 0) return <ListaVazia />;
   return (
     <ul className="divide-y divide-[#efefea]">
       {itens.map((item) => (
-        <li key={item.paymentId} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-sm">
-          <div className="min-w-0">
-            <p className="truncate font-medium text-[#1e1b1c]">{item.email ?? "Sem e-mail"}</p>
-            <p className="text-xs text-[#9a9a92]">ID {item.paymentId}</p>
-          </div>
-          <span className="rounded-full bg-[#eef2f7] px-2.5 py-1 text-xs font-semibold text-[#3f5a7d]">
-            Pix gerado {tempoDesde(item.criadoEm)}
-          </span>
-        </li>
+        <LinhaPagamento
+          key={item.paymentId}
+          item={item}
+          detalhe={`ID ${item.paymentId}`}
+          // Ainda não foi pago: o link de escolha não funcionaria.
+          permiteCopiarLink={false}
+          baseUrl={baseUrl}
+          onAtualizado={onAtualizado}
+          selo={
+            <span className="rounded-full bg-[#eef2f7] px-2.5 py-1 text-xs font-semibold text-[#3f5a7d]">
+              {textoReserva(item.metodoPagamento, item.criadoEm)}
+            </span>
+          }
+        />
       ))}
     </ul>
   );
@@ -96,10 +265,10 @@ function ListaReservas({ itens }: { itens: Reserva[] }) {
 
 /**
  * Situação das 500 vagas da rifa: compradas, pagas aguardando a escolha do
- * número, reservadas (Pix aguardando pagamento) e disponíveis — a mesma
- * conta que o site usa para bloquear a venda.
+ * número, reservadas (pagamento iniciado e não aprovado) e disponíveis — a
+ * mesma conta que o site usa para bloquear a venda.
  */
-export function ResumoRifas({ resumo, isLoading }: ResumoRifasProps) {
+export function ResumoRifas({ resumo, isLoading, baseUrl, onAtualizado }: ResumoRifasProps) {
   const [listaAberta, setListaAberta] = useState<ListaAberta>(null);
 
   if (isLoading && !resumo) {
@@ -193,13 +362,13 @@ export function ResumoRifas({ resumo, isLoading }: ResumoRifasProps) {
           <p className="border-b border-[#efefea] bg-[#fafaf8] px-4 py-2 text-xs font-bold uppercase tracking-wide text-[#5a5a54]">
             {listaAberta === "pendentesEscolha"
               ? "Pagaram e ainda não escolheram o número"
-              : "Pix gerado, aguardando pagamento"}
+              : "Pagamento iniciado, aguardando aprovação"}
           </p>
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {listaAberta === "pendentesEscolha" ? (
-              <ListaPendentes itens={resumo.listas.pendentesEscolha} />
+              <ListaPendentes itens={resumo.listas.pendentesEscolha} baseUrl={baseUrl} onAtualizado={onAtualizado} />
             ) : (
-              <ListaReservas itens={resumo.listas.reservadas} />
+              <ListaReservas itens={resumo.listas.reservadas} baseUrl={baseUrl} onAtualizado={onAtualizado} />
             )}
           </div>
         </div>
