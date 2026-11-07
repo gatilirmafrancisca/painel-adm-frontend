@@ -4,13 +4,15 @@ import { GradeRifas } from "../components/rifa/GradeRifas";
 import { ModalCadastroRifa } from "../components/rifa/ModalCadastroRifa";
 import { DetalhesNumeroModal } from "../components/rifa/DetalhesNumeroModal";
 import { ResumoRifas } from "../components/rifa/ResumoRifas";
+import { ComprasRifa } from "../components/rifa/ComprasRifa";
+import { AlertasRifa } from "../components/rifa/AlertasRifa";
 import type { Rifa, ResumoRifas as Resumo } from "../types/rifa.type";
 
 const BASEURL =
   import.meta.env.VITE_BASE_URL ??
   (typeof window !== "undefined" ? window.location.origin : "http://localhost");
 
-type ModoVisualizacao = "tabela" | "grade";
+type ModoVisualizacao = "tabela" | "grade" | "compras";
 
 function normalizarRifa(item: any): Rifa {
   return {
@@ -18,7 +20,10 @@ function normalizarRifa(item: any): Rifa {
     name: String(item?.name ?? ""),
     phone: String(item?.phone ?? ""),
     email: String(item?.email ?? ""),
-    status: String(item?.status ?? "PENDENTE") as "PENDENTE" | "APROVADO" | "CANCELADO",
+    status: String(item?.status ?? "PENDENTE") as Rifa["status"],
+    pedidoId: item?.pedidoId ?? null,
+    metodoPagamento: item?.metodoPagamento ?? null,
+    dataPagamento: item?.dataPagamento ?? null,
   };
 }
 
@@ -164,6 +169,8 @@ const RifaSolidaria: React.FC = () => {
         </div>
       )}
 
+      <AlertasRifa baseUrl={BASEURL} />
+
       <ResumoRifas resumo={resumo} isLoading={isLoading} baseUrl={BASEURL} onAtualizado={fetchResumo} />
 
       {/* 2. Busca + alternância de visualização */}
@@ -195,13 +202,24 @@ const RifaSolidaria: React.FC = () => {
           >
             Grade
           </button>
+          <button
+            type="button"
+            onClick={() => setModo("compras")}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              modo === "compras" ? "bg-[#1a5331] text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Compras do site
+          </button>
         </div>
       </div>
 
       {/* 3. Conteúdo principal */}
       <div className="mb-6 flex-1 overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-sm">
 
-        {modo === "tabela" ? (
+        {modo === "compras" ? (
+          <ComprasRifa baseUrl={BASEURL} busca={busca} />
+        ) : modo === "tabela" ? (
           <TabelaRifas rifas={rifasFiltradas} isLoading={isLoading} onSelecionar={setRifaDetalhes} />
         ) : (
           <GradeRifas

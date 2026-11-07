@@ -104,3 +104,14 @@ This template comes with [Tailwind CSS](https://tailwindcss.com/) already config
 ---
 
 Built with ❤️ using React Router.
+
+## Rifa · Ação de Natal (compras com reserva)
+
+Na tela **Rifa Solidária**:
+
+- **Alertas** no topo: pagamento em dobro (com o ID para estornar no Mercado Pago), valor pago diferente do pedido, pago depois da reserva vencer e números que a pessoa ainda vai escolher.
+- **Situação das vagas**: "Reservadas" inclui os números guardados por compras do site ainda no prazo, com os números, Pix/cartão e até quando ficam guardados.
+- **Compras do site**: uma linha por compra (números, quem comprou, valor, Pix/cartão, situação e alertas), com filtro por situação, a mesma busca da tela e o botão **Planilha dos números** (CSV dos números vendidos).
+- **Grade**: número reservado aparece em azul; ele não pode ser excluído enquanto a pessoa paga, e um número comprado pelo site só sai com confirmação.
+
+Tudo isso também funciona no modo demo (`npm run dev:mock`).
