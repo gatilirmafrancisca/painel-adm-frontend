@@ -1,6 +1,6 @@
 import type { Gato } from "~/types/gato.type";
 import type { Rifa } from "~/types/rifa.type";
-import { gatosMock, MOCK_TOKEN, MOCK_USER, pendentesEscolhaMock, reservasMock, rifasMock } from "./mockData";
+import { gatosMock, MOCK_TOKEN, MOCK_USER, pedidosMock, pendentesEscolhaMock, reservasMock, rifasMock } from "./mockData";
 
 // Modo mock: intercepta o fetch do navegador e responde às rotas do backend com dados
 // fictícios em memória. Só é carregado quando VITE_MOCK_API=true (ver app/root.tsx).
@@ -10,6 +10,8 @@ const LATENCIA_MS = 400;
 type MockRequest = {
   method: string;
   path: string;
+  /** Query da URL (ex: filtros de /rifa/pedidos). */
+  query: URLSearchParams;
   headers: Headers;
   body: BodyInit | null | undefined;
 };
@@ -69,6 +71,7 @@ export function installMockApi(baseUrl: string) {
   let rifas: Rifa[] = rifasMock();
   let pendentesEscolha = pendentesEscolhaMock();
   let reservas = reservasMock();
+  const pedidos = pedidosMock();
   let proximoId = gatos.length + 1;
 
   const base = baseUrl.replace(/\/+$/, "");
@@ -170,6 +173,29 @@ export function installMockApi(baseUrl: string) {
       return json(201, { message: "Número cadastrado com sucesso", data: rifa });
     }
 
+    if (method === "GET" && path === "/rifa/pedidos") {
+      if (!autorizado(req)) return json(401, { message: "Não autorizado" });
+      const params = req.query;
+      const status = params.get("status");
+      const busca = (params.get("busca") ?? "").toLowerCase();
+      const lista = pedidos.filter((p) =>
+        (!status || p.status === status) &&
+        (!busca || [p.nome, p.email, p.phone, ...p.numeros.map(String)].some((v) => v?.toLowerCase().includes(busca)))
+      );
+      return json(200, { data: lista });
+    }
+
+    if (method === "GET" && path === "/rifa/alertas") {
+      if (!autorizado(req)) return json(401, { message: "Não autorizado" });
+      return json(200, { data: pedidos.filter((p) => p.alertas.length || p.status === "PAGO_PARCIAL") });
+    }
+
+    if (method === "GET" && path === "/rifa/exportar.csv") {
+      if (!autorizado(req)) return json(401, { message: "Não autorizado" });
+      const linhas = rifas.map((r) => [String(r.claimedNumber).padStart(3, "0"), r.name, r.email, r.phone].map((c) => `"${c}"`).join(";"));
+      return new Response(["Número;Nome;E-mail;WhatsApp", ...linhas].join("\r\n"), { status: 200, headers: { "Content-Type": "text/csv" } });
+    }
+
     const rifaMatch = path.match(/^\/rifa\/excluir-rifa\/(\d+)$/);
     if (method === "DELETE" && rifaMatch) {
       if (!autorizado(req)) return json(401, { message: "Não autorizado" });
@@ -190,6 +216,7 @@ export function installMockApi(baseUrl: string) {
     const req: MockRequest = {
       method: (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase(),
       path,
+      query: new URL(url, "http://mock").searchParams,
       headers: new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined)),
       body: init?.body,
     };

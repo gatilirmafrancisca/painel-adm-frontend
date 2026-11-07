@@ -40,6 +40,10 @@ export const GradeRifas: React.FC<GradeRifasProps> = ({
           <i className="inline-block h-3 w-3 rounded bg-[#368c5e]" />
           Ocupado — clique pra ver detalhes
         </span>
+        <span className="flex items-center gap-1.5">
+          <i className="inline-block h-3 w-3 rounded bg-[#6b88ad]" />
+          Reservado — alguém está pagando agora
+        </span>
       </div>
 
       <div className="max-h-[600px] overflow-y-auto rounded-xl border border-[#e3e3dd] bg-[#fafaf8] p-3.5">
@@ -52,6 +56,7 @@ export const GradeRifas: React.FC<GradeRifasProps> = ({
               {bloco.map((numero) => {
                 const rifa = rifasPorNumero.get(numero);
                 const ocupado = Boolean(rifa);
+                const reservado = rifa?.status === "RESERVADO";
 
                 return (
                   <button
@@ -60,9 +65,11 @@ export const GradeRifas: React.FC<GradeRifasProps> = ({
                     onClick={() =>
                       ocupado ? onSelecionarOcupado(rifa!) : onSelecionarDisponivel(numero)
                     }
-                    aria-label={`Número ${numero}, ${ocupado ? "ocupado" : "disponível"}`}
+                    aria-label={`Número ${numero}, ${reservado ? "reservado" : ocupado ? "ocupado" : "disponível"}`}
                     className={`aspect-square min-h-[44px] rounded-lg border-2 text-xs font-bold transition ${
-                      ocupado
+                      reservado
+                        ? "border-[#6b88ad] bg-[#6b88ad] text-white hover:bg-[#3f5a7d]"
+                        : ocupado
                         ? "border-[#368c5e] bg-[#368c5e] text-white hover:bg-[#1a5331]"
                         : "border-[#368c5e] bg-white text-[#1a5331] hover:-translate-y-0.5 hover:bg-[#368c5e]/10"
                     }`}
