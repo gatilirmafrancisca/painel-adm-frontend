@@ -1,5 +1,5 @@
 import type { Gato } from "~/types/gato.type";
-import type { PendenteEscolha, Reserva, Rifa } from "~/types/rifa.type";
+import type { Pedido, PendenteEscolha, Reserva, Rifa } from "~/types/rifa.type";
 
 // Dados fictícios usados apenas quando VITE_MOCK_API=true (ver app/mocks/mockApi.ts).
 
@@ -274,4 +274,14 @@ export const pendentesEscolhaMock = (): PendenteEscolha[] => [
 export const reservasMock = (): Reserva[] => [
   { paymentId: "151245367010", email: "tiago.moura@exemplo.com", nomePagador: null, bancoPagador: null, metodoPagamento: "pix", linkEscolha: linkMock("151245367010"), criadoEm: minutosAtras(6) },
   { paymentId: "151245367011", email: null, nomePagador: "VERA CAMPOS", bancoPagador: null, metodoPagamento: "cartao", linkEscolha: linkMock("151245367011"), criadoEm: minutosAtras(60 * 26) },
+];
+
+// Compras da Ação de Natal (números escolhidos antes de pagar).
+const emMinutos = (m: number) => new Date(Date.now() + m * 60_000).toISOString();
+export const pedidosMock = (): Pedido[] => [
+  { pedidoId: "6f1c2a90-1111-4aaa-8bbb-000000000001", status: "PAGO", numeros: [12, 77, 140], numerosConfirmados: [12, 77, 140], numerosAEscolher: 0, valor: 300, metodo: "pix", mpPaymentId: "151245368001", nome: "Marina Alves", email: "marina.alves@exemplo.com", phone: "71988887777", criadoEm: minutosAtras(60 * 5), expiraEm: minutosAtras(60 * 4), pagoEm: minutosAtras(60 * 5 - 3), alertas: [], pagamentosExtras: [], utmSource: "INSTAGRAM" },
+  { pedidoId: "6f1c2a90-1111-4aaa-8bbb-000000000002", status: "PAGO_PARCIAL", numeros: [230, 231], numerosConfirmados: [230], numerosAEscolher: 1, valor: 200, metodo: "cartao", mpPaymentId: "151245368002", nome: "Rafael Costa", email: "rafael.costa@exemplo.com", phone: "71977776666", criadoEm: minutosAtras(60 * 30), expiraEm: minutosAtras(60 * 29), pagoEm: minutosAtras(60 * 28), alertas: ["PAGO_APOS_EXPIRAR"], pagamentosExtras: [], utmSource: null },
+  { pedidoId: "6f1c2a90-1111-4aaa-8bbb-000000000003", status: "PAGO", numeros: [5], numerosConfirmados: [5], numerosAEscolher: 0, valor: 100, metodo: "pix", mpPaymentId: "151245368003", nome: "Júlia Prado", email: "julia.prado@exemplo.com", phone: "71966665555", criadoEm: minutosAtras(60 * 50), expiraEm: minutosAtras(60 * 49), pagoEm: minutosAtras(60 * 50 - 2), alertas: ["PAGAMENTO_DUPLICADO"], pagamentosExtras: [{ mpPaymentId: "151245368099", valor: 100, em: minutosAtras(60 * 49) }], utmSource: "INSTAGRAM" },
+  { pedidoId: "6f1c2a90-1111-4aaa-8bbb-000000000004", status: "AGUARDANDO_PAGAMENTO", numeros: [301, 302], numerosConfirmados: [], numerosAEscolher: 0, valor: 200, metodo: "pix", mpPaymentId: "151245368004", nome: "Caio Lima", email: "caio.lima@exemplo.com", phone: "71955554444", criadoEm: minutosAtras(4), expiraEm: emMinutos(28), pagoEm: null, alertas: [], pagamentosExtras: [], utmSource: null },
+  { pedidoId: "6f1c2a90-1111-4aaa-8bbb-000000000005", status: "EXPIRADO", numeros: [88], numerosConfirmados: [], numerosAEscolher: 0, valor: 100, metodo: null, mpPaymentId: null, nome: null, email: null, phone: null, criadoEm: minutosAtras(60 * 3), expiraEm: minutosAtras(60 * 3 - 15), pagoEm: null, alertas: [], pagamentosExtras: [], utmSource: null },
 ];

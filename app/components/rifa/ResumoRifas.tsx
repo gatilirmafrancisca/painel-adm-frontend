@@ -263,7 +263,15 @@ function ListaReservas({ itens, baseUrl, onAtualizado }: ListaProps<Reserva>) {
         <LinhaPagamento
           key={item.paymentId}
           item={item}
-          detalhe={[origem(item), `ID ${item.paymentId}`].filter(Boolean).join(" · ")}
+          detalhe={(item.numeros?.length
+            ? [
+                `Números ${item.numeros.map((n) => String(n).padStart(3, "0")).join(", ")}`,
+                item.nome,
+                origem(item),
+                item.expiraEm ? `guardados até ${formatarDataHora(item.expiraEm).split(" às ")[1]}` : null,
+              ]
+            : [origem(item), `ID ${item.paymentId}`]
+          ).filter(Boolean).join(" · ")}
           // Ainda não foi pago: o link de escolha não funcionaria.
           permiteCopiarLink={false}
           baseUrl={baseUrl}

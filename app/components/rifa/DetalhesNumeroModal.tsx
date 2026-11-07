@@ -25,7 +25,8 @@ export const DetalhesNumeroModal: React.FC<DetalhesNumeroModalProps> = ({
 
     try {
       const response = await fetch(
-        `${baseUrl}/rifa/excluir-rifa/${rifa.claimedNumber}`,
+        // Número comprado pelo site: o backend exige a confirmação explícita.
+        `${baseUrl}/rifa/excluir-rifa/${rifa.claimedNumber}${rifa.pedidoId ? "?forcar=1" : ""}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -98,7 +99,12 @@ export const DetalhesNumeroModal: React.FC<DetalhesNumeroModalProps> = ({
           </p>
         )}
 
-        {!confirmando ? (
+        {rifa.status === "RESERVADO" ? (
+          <p className="rounded-xl bg-[#eef2f7] p-3.5 text-xs leading-relaxed text-[#3f5a7d]">
+            Reservado por alguém que está pagando agora pelo site. Se o pagamento não
+            sair, o número volta a ficar livre sozinho.
+          </p>
+        ) : !confirmando ? (
           <button
             type="button"
             onClick={() => setConfirmando(true)}
@@ -112,6 +118,7 @@ export const DetalhesNumeroModal: React.FC<DetalhesNumeroModalProps> = ({
               Isso remove o registro do banco, mas <strong>não cancela nem estorna</strong>{" "}
               nenhuma cobrança real — confirme que esse número não veio de um pagamento
               legítimo do Mercado Pago antes de excluir.
+              {rifa.pedidoId && <> <strong>Este número foi comprado pelo site</strong> (compra {rifa.pedidoId.slice(0, 8)}).</>}
             </p>
             <div className="flex gap-2">
               <button
