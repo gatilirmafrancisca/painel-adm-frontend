@@ -8,6 +8,7 @@ export default [
     route("voluntarios", "routes/placeholder.tsx", {id: "voluntarios"}),
     route("financeiro", "routes/placeholder.tsx", {id: "financeiro"}),
     route("configuracoes", "routes/placeholder.tsx", {id: "configuracoes"}),
-    route("rifasolidaria", "routes/rifasolidaria.tsx", {id: "rifasolidaria"})
+    route("rifasolidaria", "routes/rifasolidaria.tsx", {id: "rifasolidaria"}),
+    route("utm", "routes/utm.tsx", {id: "utm"})
   ]),
 ] satisfies RouteConfig;

@@ -1,3 +1,4 @@
+import type { UtmTag } from "~/types/utm.type";
 import type { Gato } from "~/types/gato.type";
 import type { Pedido, PendenteEscolha, Reserva, Rifa } from "~/types/rifa.type";
 
@@ -285,3 +286,19 @@ export const pedidosMock = (): Pedido[] => [
   { pedidoId: "6f1c2a90-1111-4aaa-8bbb-000000000004", status: "AGUARDANDO_PAGAMENTO", numeros: [301, 302], numerosConfirmados: [], numerosAEscolher: 0, valor: 200, metodo: "pix", mpPaymentId: "151245368004", nome: "Caio Lima", email: "caio.lima@exemplo.com", phone: "71955554444", criadoEm: minutosAtras(4), expiraEm: emMinutos(28), pagoEm: null, alertas: [], pagamentosExtras: [], utmSource: null },
   { pedidoId: "6f1c2a90-1111-4aaa-8bbb-000000000005", status: "EXPIRADO", numeros: [88], numerosConfirmados: [], numerosAEscolher: 0, valor: 100, metodo: null, mpPaymentId: null, nome: null, email: null, phone: null, criadoEm: minutosAtras(60 * 3), expiraEm: minutosAtras(60 * 3 - 15), pagoEm: null, alertas: [], pagamentosExtras: [], utmSource: null },
 ];
+
+
+// Tags de UTM (no backend real, coleção utmtags no banco da rifa).
+export const utmTagsMock = (): UtmTag[] => [
+  { id: "utm-1", categoria: "SOURCE", codigo: "LANDING_PAGE", nome: "Landing page", descricao: "Acesso direto pelo site do gatil.", ativo: true, sistema: false },
+  { id: "utm-2", categoria: "SOURCE", codigo: "INSTAGRAM", nome: "Instagram", descricao: "Links da bio, stories e posts do Instagram.", ativo: true, sistema: false },
+  { id: "utm-3", categoria: "SOURCE", codigo: "FACEBOOK", nome: "Facebook", descricao: "Posts e anúncios no Facebook.", ativo: true, sistema: false },
+  { id: "utm-4", categoria: "SOURCE", codigo: "FEIRA_ADOCAO", nome: "Feira de adoção", descricao: "QR codes e materiais das feiras de adoção.", ativo: true, sistema: false },
+  { id: "utm-5", categoria: "MEDIUM", codigo: "ORGANICO", nome: "Orgânico", descricao: "Divulgação sem custo (posts, bio, compartilhamentos).", ativo: true, sistema: false },
+  { id: "utm-6", categoria: "MEDIUM", codigo: "PAGO", nome: "Pago", descricao: "Anúncios e impulsionamentos pagos.", ativo: true, sistema: false },
+  { id: "utm-7", categoria: "CAMPAIGN", codigo: "CAMPANHA_ESPECIFICA", nome: "Campanha específica", descricao: "Campanhas pontuais de arrecadação.", ativo: true, sistema: false },
+  { id: "utm-8", categoria: "CAMPAIGN", codigo: "RIFA_SOLIDARIA", nome: "Rifa solidária", descricao: "Pagamentos da rifa. Separa a rifa das doações no financeiro.", ativo: true, sistema: true },
+];
+
+/** No modo demo, estas tags contam como "já usadas" (exclusão dá 409, como no backend). */
+export const UTM_EM_USO_MOCK = new Set(["INSTAGRAM", "ORGANICO", "LANDING_PAGE"]);

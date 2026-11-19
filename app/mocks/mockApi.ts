@@ -1,6 +1,7 @@
 import type { Gato } from "~/types/gato.type";
 import type { Rifa } from "~/types/rifa.type";
-import { gatosMock, MOCK_TOKEN, MOCK_USER, pedidosMock, pendentesEscolhaMock, reservasMock, rifasMock } from "./mockData";
+import { gatosMock, MOCK_TOKEN, MOCK_USER, pedidosMock, pendentesEscolhaMock, reservasMock, rifasMock, utmTagsMock, UTM_EM_USO_MOCK } from "./mockData";
+import type { UtmTag } from "~/types/utm.type";
 
 // Modo mock: intercepta o fetch do navegador e responde às rotas do backend com dados
 // fictícios em memória. Só é carregado quando VITE_MOCK_API=true (ver app/root.tsx).
@@ -73,6 +74,8 @@ export function installMockApi(baseUrl: string) {
   let reservas = reservasMock();
   const pedidos = pedidosMock();
   let proximoId = gatos.length + 1;
+  let utmTags: UtmTag[] = utmTagsMock();
+  let proximoUtm = utmTags.length + 1;
 
   const base = baseUrl.replace(/\/+$/, "");
   const originalFetch = window.fetch.bind(window);
@@ -203,6 +206,54 @@ export function installMockApi(baseUrl: string) {
       if (!rifas.some((r) => r.claimedNumber === numero)) return json(404, { message: "Número não encontrado" });
       rifas = rifas.filter((r) => r.claimedNumber !== numero);
       return json(200, { message: "Número excluído com sucesso" });
+    }
+
+    // ---------- tags de UTM (mesmas regras do backend) ----------
+    if (path === "/utm" || path.startsWith("/utm/")) {
+      if (!autorizado(req)) return json(401, { message: "Não autorizado" });
+      const id = path.match(/^\/utm\/([^/]+)$/)?.[1];
+
+      if (method === "GET" && !id) {
+        const categoria = req.query.get("categoria");
+        return json(200, { message: "ok", data: utmTags.filter((t) => !categoria || t.categoria === categoria) });
+      }
+
+      if (method === "POST" && !id) {
+        const dados = lerJson(req.body) ?? {};
+        const codigo = String(dados.codigo ?? "").trim().toUpperCase();
+        if (!/^[A-Z0-9_]{2,40}$/.test(codigo)) return json(400, { message: "Código inválido." });
+        if (!String(dados.nome ?? "").trim()) return json(400, { message: "O campo 'nome' é obrigatório." });
+        if (utmTags.some((t) => t.categoria === dados.categoria && t.codigo === codigo)) {
+          return json(409, { message: `Já existe a tag '${codigo}' em ${dados.categoria}.` });
+        }
+        const nova: UtmTag = {
+          id: `utm-${proximoUtm++}`, categoria: dados.categoria, codigo, nome: String(dados.nome).trim(),
+          descricao: String(dados.descricao ?? "").trim(), ativo: dados.ativo ?? true, sistema: false,
+        };
+        utmTags = [...utmTags, nova];
+        return json(201, { message: "Tag de UTM criada.", data: nova });
+      }
+
+      const tag = utmTags.find((t) => t.id === id);
+      if (id && !tag) return json(404, { message: "Tag de UTM não encontrada." });
+
+      if (method === "PATCH" && tag) {
+        const dados = lerJson(req.body) ?? {};
+        if ("codigo" in dados || "categoria" in dados) return json(400, { message: "O código e a categoria não podem ser alterados." });
+        if (tag.sistema && dados.ativo === false) return json(409, { message: `A tag '${tag.codigo}' é usada pelo sistema e não pode ser desativada.` });
+        const atualizada = { ...tag, ...dados };
+        utmTags = utmTags.map((t) => (t.id === tag.id ? atualizada : t));
+        return json(200, { message: "Tag de UTM atualizada.", data: atualizada });
+      }
+
+      if (method === "DELETE" && tag) {
+        if (tag.sistema) return json(409, { message: `A tag '${tag.codigo}' é usada pelo sistema e não pode ser excluída.` });
+        if (UTM_EM_USO_MOCK.has(tag.codigo)) {
+          return json(409, { message: `A tag '${tag.codigo}' já foi usada em entradas do financeiro ou compras. Desative-a em vez de excluir, para manter o histórico.` });
+        }
+        utmTags = utmTags.filter((t) => t.id !== tag.id);
+        return json(200, { message: "Tag de UTM excluída.", data: { id: tag.id } });
+      }
     }
 
     return null;
